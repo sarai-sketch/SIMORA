@@ -5,10 +5,11 @@ import httpx
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-
+from app.routers.simulations import router as simulations_router
 app = FastAPI(title="SIMORA API", version="1.0.0", description="Agricultural land marketplace climate context API")
 origins = os.getenv("CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173").split(",")
 app.add_middleware(CORSMiddleware, allow_origins=[x.strip() for x in origins], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
+app.include_router(simulations_router)
 
 class ClimateResponse(BaseModel):
     latitude: float
