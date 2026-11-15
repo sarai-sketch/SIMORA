@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { ScenarioEvent, ScenarioRequest, ScenarioResult } from "../types/scenario";
 import "./climate-scenarios.css";
 
@@ -8,7 +8,7 @@ type Props = {
   parcelId?: string;
   crop?: string;
   latitude?: number;
-longitude?: number;
+  longitude?: number;
 };
 
 const eventLabels: Record<ScenarioEvent, string> = {
@@ -25,6 +25,8 @@ export default function ClimateScenarioPanel({
   parcelName,
   parcelId,
   crop,
+  latitude,
+  longitude,
 }: Props) {
   const [event, setEvent] = useState<ScenarioEvent>("drought");
   const [stage, setStage] = useState("Vegetative");
@@ -37,6 +39,24 @@ export default function ClimateScenarioPanel({
   const [result, setResult] = useState<ScenarioResult | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [nasaContext, setNasaContext] = useState<{status: string; meanTemperature?: number; totalRainfall?: number; period?: string}>({status: "idle"});
+  const [ensoPhase, setEnsoPhase] = useState("El Nino");
+  useEffect(() => {
+    if (latitude === undefined || longitude === undefined) return;
+    const controller = new AbortController();
+    setNasaContext({status: "loading"});
+    const q = new URLSearchParams({latitude: String(latitude), longitude: String(longitude)});
+    fetch(`${apiBaseUrl.replace(/\/$/, "")}/api/climate/power?${q}`, {signal: controller.signal})
+      .then(r => {if (!r.ok) throw new Error(`NASA HTTP ${r.status}`); return r.json();})
+      .then(d => {
+        const params = d.values?.parameter || d.values || {};
+        const numbers = (key: string) => Object.values(params[key] || {}).map(Number).filter(x => Number.isFinite(x) && x !== -999);
+        const temps = numbers("T2M"); const rain = numbers("PRECTOTCORR");
+        setNasaContext({status: "live", meanTemperature: temps.length ? temps.reduce((a,b)=>a+b,0)/temps.length : undefined,
+          totalRainfall: rain.length ? rain.reduce((a,b)=>a+b,0) : undefined, period: `${d.start} to ${d.end}`});
+      }).catch(e => {if (e.name !== "AbortError") setNasaContext({status: "unavailable"});});
+    return () => controller.abort();
+  }, [apiBaseUrl, latitude, longitude]);
 
   async function run() {
     setLoading(true);
@@ -59,6 +79,7 @@ export default function ClimateScenarioPanel({
     if (event === "frost") body.minimum_temperature_c = minTemp;
     if (event === "heatwave") body.maximum_temperature_c = maxTemp;
     if (event === "hail") body.hail_diameter_cm = hail;
+    if (event === "enso") body.enso_phase = ensoPhase;
 
     try {
       const response = await fetch(`${apiBaseUrl.replace(/\/$/, "")}/api/simulations/run`, {
@@ -86,6 +107,9 @@ export default function ClimateScenarioPanel({
         <span className="simora-scenarios__tag">What-if simulator</span>
       </div>
 
+      <div className="simora-scenarios__context">
+        <div><strong>NASA POWER climate baseline</strong><br/><small>{nasaContext.status === "live" ? `${nasaContext.period} · Mean temperature ${nasaContext.meanTemperature?.toFixed(1) ?? "—"} °C · Rainfall total ${nasaContext.totalRainfall?.toFixed(1) ?? "—"} mm` : nasaContext.status === "loading" ? "Loading historical NASA climate data…" : "NASA historical data not available"}</small><br/><small>Historical gridded climate context; not an event forecast or soil measurement.</small></div>
+      </div>
       <div className="simora-scenarios__context">
         <strong>{parcelName || "Selected parcel"}</strong>
         <span>{crop || "Crop not specified"} · {stage}</span>
@@ -132,6 +156,10 @@ export default function ClimateScenarioPanel({
           Maximum air temperature (°C)
           <input type="number" value={maxTemp} onChange={e => setMaxTemp(Number(e.target.value))} />
         </label>}
+        {event === "enso" && <label>
+          ENSO phase (hypothetical)
+          <select value={ensoPhase} onChange={e => setEnsoPhase(e.target.value)}><option value="El Nino">El Niño</option><option value="La Nina">La Niña</option><option value="Neutral">Neutral</option></select>
+        </label>}
         {event === "hail" && <label>
           Hailstone diameter (cm)
           <input type="number" min="0" max="15" step="0.5" value={hail}
@@ -152,7 +180,7 @@ export default function ClimateScenarioPanel({
         </div>
         {result.calculation && <div className="simora-scenarios__calculation">
           {Object.entries(result.calculation).map(([key, value]) => (
-            <div key={key}><span>{key.replace(/_/g, " ")}</span><strong>{value}</strong></div>
+            <div key={key}><span>{key.replaceAll("_", " ")}</span><strong>{value}</strong></div>
           ))}
         </div>}
         <h3>Interpretation</h3>
@@ -161,6 +189,7 @@ export default function ClimateScenarioPanel({
           <h3>Required for a quantitative impact assessment</h3>
           <ul>{result.required_for_quantitative_impact.map(x => <li key={x}>{x}</li>)}</ul>
         </>}
+        {result.adaptation_options && <><h3>Adaptation options to investigate</h3><ul>{result.adaptation_options.map(x=><li key={x}>{x}</li>)}</ul></>}
         <h3>Scientific limitations</h3>
         <ul>{result.limitations.map(x => <li key={x}>{x}</li>)}</ul>
       </div>}

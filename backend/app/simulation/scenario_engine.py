@@ -155,4 +155,19 @@ def run_scenario(payload: dict) -> dict:
             "ENSO is a large-scale climate driver. Regional impacts are probabilistic and vary by season and location; ENSO phase alone does not determine local weather."
         )
 
+    # General adaptation options, not site-specific prescriptions.
+    options = {
+        "drought": ["Review irrigation availability and water-use efficiency.", "Compare drought-tolerant varieties and soil-cover options with an agronomist."],
+        "heavy_rain": ["Inspect drainage and runoff pathways.", "Consider erosion-control measures suited to slope and soil texture."],
+        "frost": ["Review crop-specific frost thresholds and local warnings.", "Consider planting-calendar changes or protective covers where feasible."],
+        "heatwave": ["Review irrigation scheduling and soil-water availability.", "Consider mulching, shade, and heat-tolerant varieties where appropriate."],
+        "hail": ["Review local hail warnings and crop insurance options.", "Evaluate protective netting only where economically and technically feasible."],
+        "enso": ["Consult an official seasonal outlook for the region.", "Compare flexible planting dates and water contingency plans."],
+    }
+    result["adaptation_options"] = options[event]
+    result["data_provenance"] = {
+        "scenario": "user-defined hypothetical event",
+        "soil": "user-supplied or illustrative assumptions, not remotely measured soil quality",
+        "nasa": "NASA POWER observations are contextual historical data, not a prediction of this event",
+    }
     return result

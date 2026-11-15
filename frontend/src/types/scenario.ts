@@ -40,4 +40,6 @@ export interface ScenarioResult {
   interpretation: string[];
   limitations: string[];
   required_for_quantitative_impact: string[];
+  adaptation_options?: string[];
+  data_provenance?: Record<string, string>;
 }
