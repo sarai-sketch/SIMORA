@@ -1,2 +1,3 @@
-# Esquemas de hardware
-Añadir aquí conexiones y fotografías propias. No conectar fuentes de radiación o sondas de neutrones caseras.
+# Hardware diagrams
+
+Add wiring diagrams and original photographs here. Do not connect homemade radiation sources or neutron probes.
