@@ -1,9 +1,10 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 from typing import Optional, Literal
-from app.simulation.scenario_engine import run_scenario
+from app.simulation.scenario_engine import run_scenario, SUPPORTED_EVENTS
 
 router = APIRouter(prefix="/api/simulations", tags=["Climate simulations"])
+legacy_router = APIRouter(prefix="/api/simulaciones", tags=["Climate simulations (legacy compatibility)"])
 
 
 class ScenarioRequest(BaseModel):
@@ -30,8 +31,18 @@ class ScenarioRequest(BaseModel):
 
 
 @router.post("/run")
+@legacy_router.post("/ejecutar")
 def simulate(request: ScenarioRequest):
     try:
         return run_scenario(request.model_dump())
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc))
+
+
+@router.get("/health")
+def simulations_health():
+    return {
+        "status": "ok",
+        "routes": ["/api/simulations/run", "/api/simulaciones/ejecutar"],
+        "events": sorted(SUPPORTED_EVENTS),
+    }
