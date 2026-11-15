@@ -4,21 +4,21 @@ import {useMemo} from 'react';
 import type {Crop} from '../rotation';
 import * as THREE from 'three';
 function Sprout({x,z,crop}:{x:number;z:number;crop:Crop}){
- const color=crop==='maiz'?'#54a943':crop==='papa'?'#70b65e':crop==='haba'?'#3fbf80':crop==='quinua'?'#bc77a4':'#79c5a4';
- const height=crop==='maiz'?.72:crop==='quinua'?.65:crop==='haba'?.5:.38;
+ const color=crop==='corn'?'#54a943':crop==='potato'?'#70b65e':crop==='fava'?'#3fbf80':crop==='quinoa'?'#bc77a4':'#79c5a4';
+ const height=crop==='corn'?.72:crop==='quinoa'?.65:crop==='fava'?.5:.38;
  return <group position={[x,0,z]}>
  <mesh position={[0,height/2,0]} castShadow><cylinderGeometry args={[.025,.035,height,6]}/><meshStandardMaterial color="#45873d"/></mesh>
  {[-1,1].map((s,i)=><mesh key={i} position={[s*.12,height*.65+i*.03,0]} rotation={[0,0,s*.45]} castShadow><sphereGeometry args={[.20,.06,.10,8,6]}/><meshStandardMaterial color={color} side={THREE.DoubleSide}/></mesh>)}
- {crop==='maiz'&&<mesh position={[0,height*.78,0]}><sphereGeometry args={[.085,.16,.085,8,8]}/><meshStandardMaterial color="#ffd34c"/></mesh>}
- {crop==='quinua'&&<mesh position={[0,height+.06,0]}><sphereGeometry args={[.13,.19,.13,8,8]}/><meshStandardMaterial color="#db9bba"/></mesh>}
- {crop==='papa'&&<mesh position={[0,.17,0]}><sphereGeometry args={[.13,.1,.13,8,8]}/><meshStandardMaterial color="#91c65c"/></mesh>}
+ {crop==='corn'&&<mesh position={[0,height*.78,0]}><sphereGeometry args={[.085,.16,.085,8,8]}/><meshStandardMaterial color="#ffd34c"/></mesh>}
+ {crop==='quinoa'&&<mesh position={[0,height+.06,0]}><sphereGeometry args={[.13,.19,.13,8,8]}/><meshStandardMaterial color="#db9bba"/></mesh>}
+ {crop==='potato'&&<mesh position={[0,.17,0]}><sphereGeometry args={[.13,.1,.13,8,8]}/><meshStandardMaterial color="#91c65c"/></mesh>}
  </group>
 }
 function Plot({crop,x,z,selected,onClick}:{crop:Crop;x:number;z:number;selected:boolean;onClick:()=>void}){
  const plants=useMemo(()=>Array.from({length:20},(_,i)=>({x:-1.16+(i%5)*.58,z:-.76+Math.floor(i/5)*.52})),[]);
  return <group position={[x,0,z]} onClick={(e)=>{e.stopPropagation();onClick()}}>
  <mesh position={[0,.07,0]} receiveShadow><boxGeometry args={[3.15,.26,2.45]}/><meshStandardMaterial color={selected?'#bb874d':'#94603c'}/></mesh>
- <mesh position={[0,.19,0]} receiveShadow><boxGeometry args={[2.91,.06,2.22]}/><meshStandardMaterial color={crop==='descanso'?'#699f4e':'#78472c'}/></mesh>
+ <mesh position={[0,.19,0]} receiveShadow><boxGeometry args={[2.91,.06,2.22]}/><meshStandardMaterial color={crop==='cover'?'#699f4e':'#78472c'}/></mesh>
  {plants.map((v,i)=><Sprout key={i} {...v} crop={crop}/>)}
  {selected&&<mesh position={[0,.02,0]}><boxGeometry args={[3.33,.07,2.63]}/><meshStandardMaterial color="#ffe275" emissive="#e5a32b" emissiveIntensity={.35}/></mesh>}
  </group>

@@ -7,6 +7,8 @@ type Props = {
   parcelName?: string;
   parcelId?: string;
   crop?: string;
+  latitude?: number;
+longitude?: number;
 };
 
 const eventLabels: Record<ScenarioEvent, string> = {
@@ -150,7 +152,7 @@ export default function ClimateScenarioPanel({
         </div>
         {result.calculation && <div className="simora-scenarios__calculation">
           {Object.entries(result.calculation).map(([key, value]) => (
-            <div key={key}><span>{key.replaceAll("_", " ")}</span><strong>{value}</strong></div>
+            <div key={key}><span>{key.replace(/_/g, " ")}</span><strong>{value}</strong></div>
           ))}
         </div>}
         <h3>Interpretation</h3>
